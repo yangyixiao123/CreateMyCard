@@ -1,4 +1,0 @@
-interface:
-  display_name: "Harmony Card Generation V3"
-  short_description: "Generate HarmonyOS cards with full key text."
-  default_prompt: "Use $harmony-card-generation-v3 to generate a HarmonyOS GenUI desktop card with complete key text from one sentence."
