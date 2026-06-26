@@ -58,12 +58,11 @@
 
 - 缺少 `cardspec` 代码块，或 `cardspec` 不是一个 JSON object。
 - `suggestSize` 与 DSL 尺寸选择不一致。
-- 静态卡片虚构 `dataBindings` 或 `refreshPlan`。
+- 静态卡片虚构 `dataBindings`。
 - 动态卡片缺少 `dataBindings`。
 - `capabilityId`、`capabilityVersion` 或 `arguments` 没有来自已声明能力。
 - `writeResultTo` 不在 `/data` 下。
 - DSL 中 UI 绑定路径无法从 CardSpec 的 `writeResultTo` 和能力 `outputSchema` 推导；静态卡片则必须能从初始 DataModel 推导。
-- `refreshPlan` 引用不存在的 `bindingId`。
 - CardSpec 包含 event capability、`functionCall`、`supportedTargets` 或点击事件清单内容。事件能力只进入 DSL `onClick`。
 
 ## 受保护内容换行评审
