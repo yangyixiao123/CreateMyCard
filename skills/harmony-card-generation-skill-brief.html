@@ -1,0 +1,484 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Harmony 卡片生成 Skill 精简说明</title>
+  <style>
+    :root {
+      --ink: #172033;
+      --muted: #5c6980;
+      --line: #dce3ee;
+      --soft: #f4f7fb;
+      --panel: #ffffff;
+      --blue: #215fd1;
+      --teal: #008c8c;
+      --green: #1f7a4d;
+      --orange: #aa6418;
+      --red: #b13a3a;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: #edf2f7;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
+      line-height: 1.62;
+    }
+
+    main {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 32px 22px 48px;
+    }
+
+    .hero {
+      padding: 34px;
+      border-radius: 20px;
+      color: #fff;
+      background: linear-gradient(135deg, #172033 0%, #174f73 58%, #136b74 100%);
+      box-shadow: 0 18px 42px rgba(23, 32, 51, .18);
+    }
+
+    .eyebrow {
+      margin: 0 0 8px;
+      color: rgba(255,255,255,.72);
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    h1 {
+      max-width: 830px;
+      margin: 0;
+      font-size: 38px;
+      line-height: 1.15;
+      letter-spacing: 0;
+    }
+
+    .hero p:last-child {
+      max-width: 840px;
+      margin: 16px 0 0;
+      color: rgba(255,255,255,.88);
+      font-size: 17px;
+    }
+
+    section {
+      margin-top: 18px;
+      padding: 24px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: var(--panel);
+      box-shadow: 0 10px 28px rgba(23, 32, 51, .07);
+    }
+
+    h2 {
+      margin: 0 0 14px;
+      font-size: 23px;
+      line-height: 1.25;
+      letter-spacing: 0;
+    }
+
+    h3 {
+      margin: 0 0 8px;
+      font-size: 17px;
+      letter-spacing: 0;
+    }
+
+    p { margin: 0 0 10px; }
+    p:last-child { margin-bottom: 0; }
+
+    code {
+      padding: 1px 5px;
+      border-radius: 5px;
+      background: #eef3f8;
+      font-family: "Cascadia Mono", Consolas, monospace;
+      font-size: .92em;
+    }
+
+    .hero code {
+      color: #ffffff;
+      background: rgba(0, 0, 0, .28);
+      border: 1px solid rgba(255, 255, 255, .22);
+    }
+
+    .muted { color: var(--muted); }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .grid.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+    .card {
+      min-height: 130px;
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fff;
+    }
+
+    .tag {
+      display: inline-block;
+      margin-bottom: 8px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: #e9f2ff;
+      color: var(--blue);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .flow {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .step {
+      padding: 14px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: var(--soft);
+    }
+
+    .step b {
+      display: block;
+      margin-bottom: 5px;
+      color: var(--blue);
+    }
+
+    .step span {
+      display: block;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.48;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      overflow: hidden;
+      border-radius: 12px;
+      font-size: 14px;
+    }
+
+    th, td {
+      padding: 11px 12px;
+      border: 1px solid var(--line);
+      vertical-align: top;
+      text-align: left;
+    }
+
+    th {
+      background: #eef4fb;
+      color: #24344d;
+      font-weight: 800;
+    }
+
+    td { background: #fff; }
+
+    .callout {
+      margin-top: 12px;
+      padding: 13px 15px;
+      border-left: 4px solid var(--teal);
+      border-radius: 12px;
+      background: #edfafa;
+    }
+
+    .warn {
+      border-left-color: var(--orange);
+      background: #fff6ea;
+    }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .chips span {
+      padding: 6px 9px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--soft);
+      color: #314158;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .ok { color: var(--green); font-weight: 800; }
+    .risk { color: var(--red); font-weight: 800; }
+
+    @media (max-width: 880px) {
+      h1 { font-size: 30px; }
+      .hero { padding: 26px; }
+      .grid, .grid.two, .flow { grid-template-columns: 1fr; }
+      section { padding: 20px; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header class="hero">
+      <p class="eyebrow">HarmonyOS A2UI Form · Create My Widget 方向</p>
+      <h1>一句话生成鸿蒙桌面卡片：Skill 设计思想精简说明</h1>
+      <p>
+        这个 skill 的目标不是让大模型自由画 UI，而是把自然语言需求编译成端侧可解析、可渲染、可刷新、可评审的卡片结果：
+        一个 <code>genui</code> DSL JSONL 加一个 <code>cardspec</code> 数据能力契约。
+      </p>
+    </header>
+
+    <section>
+      <h2>1. 核心定位</h2>
+      <div class="grid">
+        <article class="card">
+          <span class="tag">生成对象</span>
+          <h3>一张 Harmony Form 服务卡片</h3>
+          <p class="muted">只生成 <code>2x2</code> 或横版 <code>2x4</code> 卡片，不扩展成页面、文章、表格或复杂表单。</p>
+        </article>
+        <article class="card">
+          <span class="tag">双产物</span>
+          <h3>DSL + 数据契约</h3>
+          <p class="muted"><code>genui</code> 负责组件渲染和交互；<code>cardspec</code> 负责端侧数据能力、写入路径和持久化刷新依据。</p>
+        </article>
+        <article class="card">
+          <span class="tag">方法论</span>
+          <h3>规则构图，不套模板</h3>
+          <p class="muted">从用户语义、尺寸预算、组件白名单和数据能力 manifest 推导卡片，而不是复制历史样例。</p>
+        </article>
+      </div>
+    </section>
+
+    <section>
+      <h2>2. 目标链路</h2>
+      <div class="flow">
+        <div class="step"><b>用户输入</b><span>小艺 App 接收自然语言需求，如通勤、天气、日程、关怀。</span></div>
+        <div class="step"><b>云侧 Agent</b><span>按 skill 判断场景、尺寸、能力边界和语义角色。</span></div>
+        <div class="step"><b>输出结果</b><span>生成 <code>genui</code> JSONL 与 <code>cardspec</code> JSON。</span></div>
+        <div class="step"><b>端侧渲染</b><span>A2UI 解析 DSL，创建 surface，渲染组件树。</span></div>
+        <div class="step"><b>运行时刷新</b><span>端侧执行 CardSpec 数据能力，并通过 <code>updateDataModel</code> 刷新。</span></div>
+      </div>
+    </section>
+
+    <section>
+      <h2>3. 为什么要分成 genui 和 cardspec</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>产物</th>
+            <th>职责</th>
+            <th>端侧价值</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>genui</code></td>
+            <td>A2UI Form JSONL：<code>createSurface</code>、<code>updateComponents</code>、<code>updateDataModel</code>。</td>
+            <td>端侧可直接解析渲染，并用 DataModel 驱动 UI 响应式更新。</td>
+          </tr>
+          <tr>
+            <td><code>cardspec</code></td>
+            <td>卡片尺寸和数据绑定契约：<code>suggestSize</code>、<code>dataBindings</code>、<code>capabilityId</code>、<code>arguments</code>、<code>writeResultTo</code>。</td>
+            <td>端侧知道该查什么、参数是什么、结果写到哪里，后续可持久化和定时刷新。</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="callout">
+        <strong>关键点：</strong>
+        CardSpec 不是附件，而是同一张卡片的运行时契约。点击事件不写入 CardSpec，只进入 DSL 的 <code>onClick</code>。
+      </div>
+    </section>
+
+    <section>
+      <h2>4. 协议收敛策略</h2>
+      <div class="grid two">
+        <article class="card">
+          <h3 class="ok">允许什么</h3>
+          <p class="muted">
+            使用 <code>version:"v0.9"</code>、<code>ohos.a2ui.extended.catalog</code>、扁平组件邻接表、一次完整 <code>updateComponents</code>，
+            以及 10 个 Form 组件：Text、Image、Divider、Progress、Button、Checkbox、Row、Column、List、Stack。
+          </p>
+        </article>
+        <article class="card">
+          <h3 class="risk">禁止什么</h3>
+          <p class="muted">
+            禁止未声明组件、标准 catalog 属性名、<code>theme</code>、<code>Button.action</code>、网络图片、SVG、表达式
+            <code>{{...}}</code>、<code>$__dataModel</code>、<code>$__widthBreakpoint</code> 等。
+          </p>
+        </article>
+      </div>
+      <div class="chips">
+        <span>Text.content</span>
+        <span>Image.src</span>
+        <span>Button.label</span>
+        <span>onClick only</span>
+        <span>{path:"/..."}</span>
+        <span>formatString</span>
+        <span>updateDataModel 预计算展示字段</span>
+      </div>
+    </section>
+
+    <section>
+      <h2>5. 卡片构图规则</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>尺寸</th>
+            <th>适用场景</th>
+            <th>构图约束</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>2x2</code><br>160 x 160vp</td>
+            <td>一个主答案加一个辅助上下文，如天气、下个会议、低电、倒计时、简单动作。</td>
+            <td>主区域不超过 3 个；默认不滚动；root padding 约 10 到 12vp；保护时间、温度、CTA、主标题等关键文本。</td>
+          </tr>
+          <tr>
+            <td><code>2x4</code><br>320 x 160vp</td>
+            <td>需要左右关系或更安全横向空间，如日程加动作、设备媒体加状态、天气加待办。</td>
+            <td>主区域不超过 4 个；通常是 focal pane、detail pane、action/status；避免长列表和页面化布局。</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="callout warn">
+        <strong>保护文本原则：</strong>
+        日期、星期、时间、倒计时、温度、百分比、状态、CTA、主标题和用户明确要求字段必须完整显示，不能用省略号、裁剪或逐字换行掩盖布局失败。
+      </div>
+    </section>
+
+    <section>
+      <h2>6. 数据能力设计</h2>
+      <div class="grid">
+        <article class="card">
+          <span class="tag">能力 manifest</span>
+          <h3>当前已有天气和日历</h3>
+          <p class="muted">
+            <code>weather.overview.get</code> 用于当前天气、预报、空气质量等；<code>calendar.events.search</code> 用于本地日历事件查询。
+          </p>
+        </article>
+        <article class="card">
+          <span class="tag">DataModel 映射</span>
+          <h3>writeResultTo 决定 UI 路径</h3>
+          <p class="muted">
+            例如日历写到 <code>/data/calendar</code>，UI 列表绑定 <code>/data/calendar/items</code>；天气写到 <code>/data/weather</code>。
+          </p>
+        </article>
+        <article class="card">
+          <span class="tag">隐私边界</span>
+          <h3>初始值只放空结构</h3>
+          <p class="muted">
+            DSL 初始化 loading、空对象和空数组，不写用户真实日程、位置或天气。真实数据由端侧执行能力后注入。
+          </p>
+        </article>
+      </div>
+      <div class="callout">
+        <strong>扩展方式：</strong>
+        新增 Todo、通勤、设备状态、健康、应用使用时长等能力时，继续沉淀为 <code>reference/data-capability/</code> 下的 manifest，Agent 按声明选择能力，不在提示词中硬编码。
+      </div>
+    </section>
+
+    <section>
+      <h2>7. 点击事件设计</h2>
+      <p class="muted">
+        点击能力由 <code>reference/event-capability/click-event.md</code> 约束。当前支持拨号、打开声明过的应用页面、查看日程详情。
+      </p>
+      <table>
+        <thead>
+          <tr>
+            <th>functionCall</th>
+            <th>用途</th>
+            <th>核心约束</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>clickToCallPhone</code></td>
+            <td>跳转拨号界面</td>
+            <td>只允许参数 <code>phonenumber</code>。</td>
+          </tr>
+          <tr>
+            <td><code>clickToDeeplink</code></td>
+            <td>打开设置、天气、闹钟等已声明页面</td>
+            <td>bundle、ability、uri 必须来自 supportedTargets。</td>
+          </tr>
+          <tr>
+            <td><code>clickToIntent</code></td>
+            <td>查看日程详情</td>
+            <td><code>intentName</code> 固定为 <code>ViewCalendarEvent</code>，<code>entityId</code> 从日程数据绑定。</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>8. 质量闭环</h2>
+      <div class="grid">
+        <article class="card">
+          <span class="tag">生成前</span>
+          <h3>先形成布局理由</h3>
+          <p class="muted">明确尺寸选择、语义角色、视觉焦点、素材来源、宽度预算、交互来源和 CardSpec 映射。</p>
+        </article>
+        <article class="card">
+          <span class="tag">生成中</span>
+          <h3>至少一次改进</h3>
+          <p class="muted">对首版草稿做层级、紧凑度、场景特征或关键文本完整显示的显式改进。</p>
+        </article>
+        <article class="card">
+          <span class="tag">交付前</span>
+          <h3>阻塞项评审</h3>
+          <p class="muted">按 final-review 检查协议、卡片形态、受保护文本、事件、素材、CardSpec 对齐，失败则不能交付。</p>
+        </article>
+      </div>
+    </section>
+
+    <section>
+      <h2>9. 文件职责速览</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>文件</th>
+            <th>职责</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><code>SKILL.md</code></td><td>总入口：模式选择、参考路由、输出格式、不可妥协项。</td></tr>
+          <tr><td><code>protocol.md</code> / <code>component-catalog.md</code></td><td>Form 协议硬约束、组件白名单、属性和样式规则。</td></tr>
+          <tr><td><code>card-composition-rules.md</code></td><td>2x2/2x4 尺寸预算、语义角色、宽度和关键文本保护规则。</td></tr>
+          <tr><td><code>data-binding.md</code> / <code>function.md</code></td><td>DataModel、JSON Pointer、模板循环、<code>formatString</code> 拼接。</td></tr>
+          <tr><td><code>cardspec.md</code></td><td>端侧数据能力和持久化契约规则。</td></tr>
+          <tr><td><code>data-capability/*</code> / <code>event-capability/*</code></td><td>天气、日历和点击能力 manifest。</td></tr>
+          <tr><td><code>asset-library.md</code></td><td>可使用的本地/资源素材路径，防止模型编造图片。</td></tr>
+          <tr><td><code>design-review.md</code> / <code>final-review.md</code></td><td>视觉、交互、数据语义和最终阻塞项评审。</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>10. 对项目落地的建议</h2>
+      <div class="grid">
+        <article class="card">
+          <span class="tag">近期</span>
+          <h3>补全端侧能力 manifest</h3>
+          <p class="muted">围绕通勤、Todo、设备状态、健康、应用使用时长等高频卡片补充 data capability 和 event capability。</p>
+        </article>
+        <article class="card">
+          <span class="tag">中期</span>
+          <h3>端侧增加自动校验器</h3>
+          <p class="muted">把 final-review 的阻塞项转成端侧校验规则，拒绝不可渲染、不可点击或路径不一致的卡片。</p>
+        </article>
+        <article class="card">
+          <span class="tag">后续</span>
+          <h3>扩展刷新和异常策略</h3>
+          <p class="muted">当前 CardSpec 主要描述 dataBindings；后续可补充 refreshPlan、权限说明、失败态、lastUpdated 等运行时字段。</p>
+        </article>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
