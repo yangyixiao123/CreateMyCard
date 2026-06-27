@@ -1,0 +1,879 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Create My Card 链路改造方案</title>
+  <style>
+    :root {
+      --ink: #17211f;
+      --muted: #5d6965;
+      --line: #d9e2de;
+      --paper: #fbfcfa;
+      --soft: #eef5f1;
+      --teal: #157a6e;
+      --teal-2: #dff1ec;
+      --amber: #b76e1f;
+      --amber-2: #fff1dc;
+      --rose: #a64d5f;
+      --rose-2: #fae9ee;
+      --blue: #2f6f9f;
+      --blue-2: #e6f1f6;
+      --green: #34774a;
+      --green-2: #e7f3e9;
+      --shadow: 0 18px 45px rgba(31, 46, 42, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--paper);
+      font-family: "HarmonyOS Sans SC", "Microsoft YaHei", "PingFang SC", Arial, sans-serif;
+      line-height: 1.62;
+    }
+
+    header {
+      padding: 56px 24px 34px;
+      background:
+        linear-gradient(135deg, rgba(21, 122, 110, 0.13), rgba(183, 110, 31, 0.10)),
+        #f7faf7;
+      border-bottom: 1px solid var(--line);
+    }
+
+    main {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 30px 24px 64px;
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin-top: 0;
+    }
+
+    h1 {
+      max-width: 1120px;
+      margin: 0 auto 14px;
+      font-size: 36px;
+      line-height: 1.18;
+      letter-spacing: 0;
+    }
+
+    .subtitle {
+      max-width: 1120px;
+      margin: 0 auto;
+      color: var(--muted);
+      font-size: 17px;
+    }
+
+    .meta {
+      max-width: 1120px;
+      margin: 22px auto 0;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      min-height: 28px;
+      padding: 3px 10px;
+      border-radius: 999px;
+      background: #ffffff;
+      border: 1px solid var(--line);
+      color: #34413d;
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    section {
+      margin-top: 28px;
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .section-title::before {
+      content: "";
+      width: 5px;
+      height: 24px;
+      border-radius: 4px;
+      background: var(--teal);
+    }
+
+    h2 {
+      margin-bottom: 0;
+      font-size: 24px;
+      line-height: 1.3;
+      letter-spacing: 0;
+    }
+
+    h3 {
+      margin-bottom: 8px;
+      font-size: 17px;
+      line-height: 1.35;
+    }
+
+    .lead {
+      max-width: 900px;
+      color: var(--muted);
+      font-size: 16px;
+    }
+
+    .panel {
+      background: #ffffff;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      padding: 22px;
+    }
+
+    .grid-2,
+    .grid-3,
+    .grid-4 {
+      display: grid;
+      gap: 14px;
+    }
+
+    .grid-2 {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .grid-3 {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .grid-4 {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .mini {
+      padding: 16px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: #ffffff;
+    }
+
+    .mini.teal {
+      background: var(--teal-2);
+      border-color: #b9ddd5;
+    }
+
+    .mini.amber {
+      background: var(--amber-2);
+      border-color: #edd0a7;
+    }
+
+    .mini.rose {
+      background: var(--rose-2);
+      border-color: #ecc1ca;
+    }
+
+    .mini.blue {
+      background: var(--blue-2);
+      border-color: #bad7e5;
+    }
+
+    .mini.green {
+      background: var(--green-2);
+      border-color: #bfe0c6;
+    }
+
+    .mini p,
+    .panel p {
+      margin-bottom: 0;
+      color: var(--muted);
+    }
+
+    .flow {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 10px;
+      align-items: stretch;
+    }
+
+    .flow.long {
+      grid-template-columns: repeat(8, minmax(0, 1fr));
+    }
+
+    .step {
+      position: relative;
+      min-height: 88px;
+      padding: 13px 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #ffffff;
+    }
+
+    .step::after {
+      content: ">";
+      position: absolute;
+      top: 50%;
+      right: -10px;
+      transform: translateY(-50%);
+      color: var(--muted);
+      font-weight: 700;
+      z-index: 1;
+    }
+
+    .step:last-child::after {
+      display: none;
+    }
+
+    .step strong {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 14px;
+    }
+
+    .step span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .before .step {
+      background: #f7f8f6;
+    }
+
+    .after .step {
+      background: #ffffff;
+      border-color: #bddbd5;
+    }
+
+    .callout {
+      padding: 18px 20px;
+      border-left: 5px solid var(--teal);
+      background: var(--soft);
+      border-radius: 8px;
+    }
+
+    .callout p {
+      margin: 0;
+      color: #33413d;
+    }
+
+    ul {
+      margin: 10px 0 0;
+      padding-left: 20px;
+    }
+
+    li {
+      margin: 6px 0;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #ffffff;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 820px;
+    }
+
+    th,
+    td {
+      padding: 13px 14px;
+      text-align: left;
+      vertical-align: top;
+      border-bottom: 1px solid var(--line);
+    }
+
+    th {
+      background: #f1f6f3;
+      color: #26332f;
+      font-size: 14px;
+    }
+
+    td {
+      color: #3f4c48;
+      font-size: 14px;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    code,
+    pre {
+      font-family: "Cascadia Mono", Consolas, "Courier New", monospace;
+    }
+
+    pre {
+      margin: 12px 0 0;
+      padding: 16px;
+      overflow-x: auto;
+      border-radius: 8px;
+      color: #eff7f2;
+      background: #1d2a26;
+      font-size: 13px;
+      line-height: 1.52;
+    }
+
+    .badge {
+      display: inline-block;
+      margin-bottom: 8px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      color: #ffffff;
+      background: var(--teal);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .badge.amber {
+      background: var(--amber);
+    }
+
+    .badge.rose {
+      background: var(--rose);
+    }
+
+    .badge.blue {
+      background: var(--blue);
+    }
+
+    .badge.green {
+      background: var(--green);
+    }
+
+    .timeline {
+      display: grid;
+      gap: 12px;
+    }
+
+    .timeline-item {
+      display: grid;
+      grid-template-columns: 120px 1fr;
+      gap: 14px;
+      align-items: start;
+      padding: 15px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #ffffff;
+    }
+
+    .phase {
+      color: var(--teal);
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    footer {
+      margin-top: 34px;
+      padding-top: 18px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    @media (max-width: 920px) {
+      h1 {
+        font-size: 30px;
+      }
+
+      .grid-2,
+      .grid-3,
+      .grid-4,
+      .flow,
+      .flow.long {
+        grid-template-columns: 1fr;
+      }
+
+      .step::after {
+        content: "v";
+        top: auto;
+        right: 50%;
+        bottom: -17px;
+        transform: translateX(50%);
+      }
+
+      .step {
+        min-height: auto;
+      }
+
+      .timeline-item {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Create My Card 链路改造方案</h1>
+    <p class="subtitle">面向小艺 App 中“自然语言生成鸿蒙桌面卡片”的工程化升级：把主对话 Agent 的通用生成，改造为 Skill 编排 + 专用小模型生成 + 文件产物校验 + 端侧渲染的闭环。</p>
+    <div class="meta">
+      <span class="tag">优先目标：效果稳定</span>
+      <span class="tag">兼顾目标：端到端时延</span>
+      <span class="tag">产物：GenUI DSL + CardSpec</span>
+      <span class="tag">端侧：A2UI Form 渲染</span>
+    </div>
+  </header>
+
+  <main>
+    <section>
+      <div class="section-title">
+        <h2>一、为什么要改造</h2>
+      </div>
+      <div class="grid-3">
+        <article class="mini teal">
+          <span class="badge">效果</span>
+          <h3>让模型专门学会生成卡片协议</h3>
+          <p>DSL/CardSpec 是强格式、强约束任务。专用小模型可以围绕 Form 组件、数据绑定、CardSpec 对齐和常见卡片布局做增训，减少通用模型偶发的协议漂移。</p>
+        </article>
+        <article class="mini amber">
+          <span class="badge amber">时延</span>
+          <h3>避免大模型复述小模型结果</h3>
+          <p>小模型已以 token 形式生成完整产物后，如果再让主 Agent 复述给端侧，会产生二次 token 输出成本。文件产物可以被校验、发布和端侧直接拉取。</p>
+        </article>
+        <article class="mini blue">
+          <span class="badge blue">工程化</span>
+          <h3>把正确性交给校验器</h3>
+          <p>语法、组件白名单、数据路径、能力 manifest、CardSpec 对齐等不应只靠 prompt 约束。校验程序能在渲染前拦住失败产物。</p>
+        </article>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-title">
+        <h2>二、新旧链路对比</h2>
+      </div>
+      <p class="lead">当前链路更轻，但生成、校验、端侧传输都耦合在主 Agent 输出中；目标链路把生成产物文件化，让校验、修复、缓存和端侧消费都有稳定边界。</p>
+
+      <div class="panel before">
+        <h3>当前链路</h3>
+        <div class="flow">
+          <div class="step">
+            <strong>Query</strong>
+            <span>用户输入自然语言需求</span>
+          </div>
+          <div class="step">
+            <strong>Skill</strong>
+            <span>读取规则并直接生成 DSL/CardSpec</span>
+          </div>
+          <div class="step">
+            <strong>Token 输出</strong>
+            <span>以文本流形式输出 GenUI DSL</span>
+          </div>
+          <div class="step">
+            <strong>端侧解析</strong>
+            <span>从 token 流恢复消息</span>
+          </div>
+          <div class="step">
+            <strong>渲染</strong>
+            <span>A2UI Form 展示卡片</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel after" style="margin-top: 14px;">
+        <h3>目标链路</h3>
+        <div class="flow long">
+          <div class="step">
+            <strong>Query</strong>
+            <span>用户原始需求</span>
+          </div>
+          <div class="step">
+            <strong>Skill 精炼</strong>
+            <span>生成 CardTaskSpec</span>
+          </div>
+          <div class="step">
+            <strong>能力路由</strong>
+            <span>按需选取 manifest</span>
+          </div>
+          <div class="step">
+            <strong>小模型服务</strong>
+            <span>生成 DSL + CardSpec</span>
+          </div>
+          <div class="step">
+            <strong>产物文件</strong>
+            <span>保存 artifact</span>
+          </div>
+          <div class="step">
+            <strong>校验器</strong>
+            <span>语法与协议检查</span>
+          </div>
+          <div class="step">
+            <strong>发布链接</strong>
+            <span>文件 ID / URL / hash</span>
+          </div>
+          <div class="step">
+            <strong>端侧渲染</strong>
+            <span>拉取并解析 A2UI</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-title">
+        <h2>三、核心变化点</h2>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>变化项</th>
+              <th>当前方案</th>
+              <th>目标方案</th>
+              <th>意义与价值</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>生成主体</td>
+              <td>Skill 通过大模型直接生成 DSL/CardSpec。</td>
+              <td>Skill 负责编排，小模型服务专门生成卡片产物。</td>
+              <td>生成能力可以单独增训、评测、灰度和版本化。</td>
+            </tr>
+            <tr>
+              <td>输入形态</td>
+              <td>原始 query + 当前 Skill 规则。</td>
+              <td>原始 query 被精炼为 CardTaskSpec，再传给小模型。</td>
+              <td>减少无关上下文，降低 prompt 长度和推理时延。</td>
+            </tr>
+            <tr>
+              <td>产物形态</td>
+              <td>DSL/CardSpec 以 token 形式输出。</td>
+              <td>保存为统一 artifact 文件，再给端侧文件链接。</td>
+              <td>便于校验、修复、缓存、复用和端侧稳定消费。</td>
+            </tr>
+            <tr>
+              <td>正确性保障</td>
+              <td>依赖模型自检和 prompt 约束。</td>
+              <td>引入校验程序，失败后结构化修复。</td>
+              <td>把可程序化判断的问题从模型概率输出中剥离出来。</td>
+            </tr>
+            <tr>
+              <td>端侧消费</td>
+              <td>端侧从 token 流中解析 DSL。</td>
+              <td>端侧按 artifactId/URL/hash 拉取产物文件。</td>
+              <td>减少二次转述，支持缓存和失败重试。</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-title">
+        <h2>四、传给小模型的信息边界</h2>
+      </div>
+      <div class="callout">
+        <p>原则：小模型只拿生成本张卡片必须知道的信息，不接收小艺主 Agent 的完整 system prompt，也不接收完整 Skill 文档。</p>
+      </div>
+
+      <div class="grid-2" style="margin-top: 14px;">
+        <article class="mini green">
+          <span class="badge green">建议传入</span>
+          <ul>
+            <li>用户原始 query。</li>
+            <li>Skill 精炼出的 CardTaskSpec。</li>
+            <li>协议版本、catalogId、目标尺寸。</li>
+            <li>本次相关 data capability manifest。</li>
+            <li>本次相关 event capability manifest。</li>
+            <li>少量语义匹配素材候选。</li>
+            <li>当前日期、时区、语言区域。</li>
+          </ul>
+        </article>
+        <article class="mini rose">
+          <span class="badge rose">不建议传入</span>
+          <ul>
+            <li>小艺主对话 Agent 的完整 system prompt。</li>
+            <li>完整 Skill 文档和全部 reference。</li>
+            <li>与本次卡片无关的能力 manifest。</li>
+            <li>长历史对话，除非用户明确引用。</li>
+            <li>端侧不支持或未声明的自定义函数。</li>
+          </ul>
+        </article>
+      </div>
+
+      <div class="panel" style="margin-top: 14px;">
+        <h3>CardTaskSpec 示例</h3>
+        <pre><code>{
+  "query": "帮我做一个通勤日常桌面组件，包含今天天气、今日待办清单",
+  "task": {
+    "scene": "commute_daily",
+    "sizePreference": "2x4",
+    "mustShow": ["today_weather", "today_schedule"],
+    "dataCapabilities": ["weather.overview.get", "calendar.events.search"],
+    "eventCapabilities": ["clickToDeeplink", "clickToIntent"],
+    "locale": "zh-CN",
+    "timezone": "Asia/Shanghai",
+    "currentDate": "2026-06-27"
+  },
+  "runtime": {
+    "protocolVersion": "v0.9",
+    "catalogId": "ohos.a2ui.extended.catalog",
+    "targetFormFactors": ["2x2", "2x4"]
+  }
+}</code></pre>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-title">
+        <h2>五、文件产物格式建议</h2>
+      </div>
+      <p class="lead">建议不要把 GenUI DSL 和 CardSpec 分成两个互不关联的文件，而是保存为一个卡片 artifact。这样校验器可以一次性检查 DSL、CardSpec、DataModel 路径和能力声明是否对齐。</p>
+      <div class="panel">
+        <pre><code>{
+  "artifactVersion": "1.0",
+  "protocolVersion": "v0.9",
+  "surfaceId": "commute-daily-card",
+  "genui": [
+    {"version": "v0.9", "createSurface": {}},
+    {"version": "v0.9", "updateComponents": {}},
+    {"version": "v0.9", "updateDataModel": {}}
+  ],
+  "cardspec": {
+    "suggestSize": "2x4",
+    "dataBindings": []
+  },
+  "meta": {
+    "sourceQuery": "...",
+    "skillVersion": "...",
+    "modelVersion": "...",
+    "createdAt": 1782576000000
+  }
+}</code></pre>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-title">
+        <h2>六、当前 Skill 需要做的适配</h2>
+      </div>
+      <div class="grid-3">
+        <article class="mini teal">
+          <span class="badge">编排职责</span>
+          <ul>
+            <li>新增 CardTaskSpec 生成步骤。</li>
+            <li>按 query 选择相关 data/event capability。</li>
+            <li>控制在线小模型服务调用。</li>
+            <li>管理校验、修复、发布流程。</li>
+          </ul>
+        </article>
+        <article class="mini amber">
+          <span class="badge amber">规则调整</span>
+          <ul>
+            <li>修改“不得创建产物文件”的旧约束。</li>
+            <li>增加 artifact 文件格式约束。</li>
+            <li>保留现有 Form 协议与 CardSpec 规则。</li>
+            <li>把最终交付从代码块改为文件链接或文件 ID。</li>
+          </ul>
+        </article>
+        <article class="mini blue">
+          <span class="badge blue">修复闭环</span>
+          <ul>
+            <li>定义校验脚本入参：artifact 文件路径。</li>
+            <li>定义校验脚本出参：结构化错误列表。</li>
+            <li>校验失败后最多重试 1 到 2 次。</li>
+            <li>连续失败时降级为能力边界说明。</li>
+          </ul>
+        </article>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-title">
+        <h2>七、小模型服务侧需要做的适配</h2>
+      </div>
+      <div class="grid-4">
+        <article class="mini">
+          <span class="badge">System Prompt</span>
+          <p>预置稳定硬规则：组件白名单、协议版本、JSON 输出、表达式禁用、CardSpec 对齐、禁止伪造能力。</p>
+        </article>
+        <article class="mini">
+          <span class="badge amber">增训数据</span>
+          <p>覆盖常见卡片类型、不同尺寸布局、query 到 CardTaskSpec 到 artifact 的样例，以及校验失败修复样例。</p>
+        </article>
+        <article class="mini">
+          <span class="badge blue">服务接口</span>
+          <p>输入 CardTaskSpec 和精简 manifest，输出 artifact 文件路径、artifactId、模型版本和生成状态。</p>
+        </article>
+        <article class="mini">
+          <span class="badge green">修复接口</span>
+          <p>输入原 artifact 和结构化校验错误，返回修复后的 artifact，避免从零重新生成。</p>
+        </article>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-title">
+        <h2>八、校验程序建议</h2>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>校验层级</th>
+              <th>检查内容</th>
+              <th>失败示例</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>语法校验</td>
+              <td>artifact 是否为合法 JSON，genui 每条消息是否可解析。</td>
+              <td>JSON 缺括号、数组尾逗号、字符串未闭合。</td>
+            </tr>
+            <tr>
+              <td>协议校验</td>
+              <td>version、catalogId、surfaceId、组件白名单、属性名、事件类型。</td>
+              <td>使用 Text.text、Image.url、Grid、onChange。</td>
+            </tr>
+            <tr>
+              <td>CardSpec 校验</td>
+              <td>suggestSize、capabilityId、arguments、writeResultTo、能力 manifest。</td>
+              <td>使用未声明的 todo capability，writeResultTo 不在 /data 下。</td>
+            </tr>
+            <tr>
+              <td>路径一致性校验</td>
+              <td>DSL 中 path 能否从 updateDataModel 或 writeResultTo + outputSchema 推导。</td>
+              <td>UI 绑定 /data/todo/items，但 CardSpec 没有 todo binding。</td>
+            </tr>
+            <tr>
+              <td>布局静态校验</td>
+              <td>尺寸、主区域数量、Row 子节点数、关键文本 ellipsis、网络图路径。</td>
+              <td>2x2 中出现长列表，CTA 使用 ellipsis。</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="panel" style="margin-top: 14px;">
+        <h3>ValidationResult 示例</h3>
+        <pre><code>{
+  "valid": false,
+  "errors": [
+    {
+      "code": "UNDECLARED_CAPABILITY",
+      "severity": "blocking",
+      "path": "/cardspec/dataBindings/1/capabilityId",
+      "message": "capabilityId todo.items.search is not declared in manifest"
+    }
+  ],
+  "warnings": [
+    {
+      "code": "DENSE_ROW",
+      "severity": "warning",
+      "path": "/genui/1/updateComponents/components/eventRow",
+      "message": "Row contains more than 3 direct children"
+    }
+  ]
+}</code></pre>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-title">
+        <h2>九、分层放置规则</h2>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>内容类型</th>
+              <th>建议放置位置</th>
+              <th>原因</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>稳定协议硬规则</td>
+              <td>小模型 system prompt + 校验器</td>
+              <td>减少每次请求传输成本，同时由程序兜底。</td>
+            </tr>
+            <tr>
+              <td>常见卡片布局经验</td>
+              <td>小模型增训数据</td>
+              <td>让模型内化效果，而不是靠超长 prompt 临时约束。</td>
+            </tr>
+            <tr>
+              <td>变化快的能力 manifest</td>
+              <td>Skill 按需注入</td>
+              <td>能力会扩展，不能固化在模型权重或长 prompt 中。</td>
+            </tr>
+            <tr>
+              <td>用户 query 理解与业务路由</td>
+              <td>当前 Skill</td>
+              <td>Skill 更适合读取上下文、做任务精炼和选择工具链。</td>
+            </tr>
+            <tr>
+              <td>语法、路径、能力一致性</td>
+              <td>校验程序</td>
+              <td>这些问题可确定性判断，不应主要依赖模型自觉。</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-title">
+        <h2>十、推荐推进节奏</h2>
+      </div>
+      <div class="timeline">
+        <div class="timeline-item">
+          <div class="phase">阶段 1</div>
+          <div>
+            <h3>定义 artifact 与校验器 MVP</h3>
+            <p>先支持 JSON 语法、Form 组件白名单、CardSpec suggestSize、dataBindings 和 path 一致性校验。此阶段可以继续由当前 Skill 生成产物。</p>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="phase">阶段 2</div>
+          <div>
+            <h3>引入在线小模型服务</h3>
+            <p>Skill 生成 CardTaskSpec，调用小模型生成 artifact 文件。先覆盖天气、日历、会议提醒等高频场景。</p>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="phase">阶段 3</div>
+          <div>
+            <h3>加入修复循环和发布链路</h3>
+            <p>校验失败后返回结构化错误，由小模型修复文件。通过后生成文件链接、artifactId 和 hash，供端侧拉取。</p>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="phase">阶段 4</div>
+          <div>
+            <h3>扩展能力与评测体系</h3>
+            <p>补充待办、通勤、位置、路线、刷新计划等 manifest，并建立效果评分、渲染成功率、修复成功率和端到端时延指标。</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-title">
+        <h2>十一、结论</h2>
+      </div>
+      <div class="callout">
+        <p>目标链路的本质是职责拆分：Skill 负责理解、路由和编排；小模型负责高质量生成；校验器负责确定性正确；端侧负责拉取、执行数据能力并渲染。这样既能提升卡片效果，也能减少重复 token 输出带来的时延，并为后续扩展更多端侧能力留下清晰接口。</p>
+      </div>
+    </section>
+
+    <footer>
+      <p>建议后续补齐：todo data capability、commute/location data capability、CardSpec refreshPlan、权限与失败态契约、artifact 发布与缓存策略。</p>
+    </footer>
+  </main>
+</body>
+</html>
