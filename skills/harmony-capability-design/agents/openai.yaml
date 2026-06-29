@@ -1,0 +1,4 @@
+interface:
+  display_name: "Harmony 端侧能力设计"
+  short_description: "根据底层接口示例设计 input/output schema。"
+  default_prompt: "使用 $harmony-capability-design，根据端侧同事提供的底层接口输入输出示例，输出能力封装建议和 input/output schema 示例。"
