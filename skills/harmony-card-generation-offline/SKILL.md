@@ -1,9 +1,9 @@
 ---
-name: harmony-card-generation-path-first
-description: "生成、修复、评审或解释 HarmonyOS A2UI Form 服务卡片的路径表达版本。用于需要同时产出三行 genui JSONL 与 cardspec JSON，并只按 path/formatString 绑定、2x2/2x4 尺寸、Form 组件字段、事件能力和 CardSpec 数据契约校验同一张卡片的任务。"
+name: harmony-card-generation-offline
+description: "生成、修复、评审或解释 HarmonyOS A2UI Form 服务卡片的表达式版本。用于需要同时产出三行 genui JSONL 与 cardspec JSON，并只按完整 {{ ... }} 表达式读取 DataModel、支持列表循环项表达式、2x2/2x4 尺寸、Form 组件字段、事件能力和 CardSpec 数据契约校验同一张卡片的任务。"
 ---
 
-# Harmony 卡片生成（路径表达版）
+# Harmony 卡片生成（表达式版）
 
 产出同一张 Form 卡片：三行 `genui` JSONL 加一个 `cardspec` JSON。输出前按 `core-rules.md` 检查协议、绑定、布局、内容、颜色、事件和 CardSpec。
 
@@ -32,17 +32,20 @@ description: "生成、修复、评审或解释 HarmonyOS A2UI Form 服务卡片
 
 ```cardspec
 {
+  "title": "状态卡片",
+  "description": "状态概览",
   "suggestSize": "2x2"
 }
 ```
 
-静态卡片也输出 `cardspec`，但不要虚构 `dataBindings`。动态卡片的 `cardspec.dataBindings` 必须来自已声明 data capability，且 UI 路径能由 `writeResultTo + outputSchema` 推导。
+静态卡片也输出 `cardspec`，必须包含静态短 `title`、静态短 `description` 和 `suggestSize`，但不要虚构 `dataBindings`。动态卡片的 `cardspec.dataBindings` 必须来自已声明 data capability，且 UI 路径能由 `writeResultTo + outputSchema` 推导。
 
 ## 一致性约定
 
-- 新卡片默认使用 `2x2 = 140 x 140`，root `padding: 12`、`borderRadius: 18`、`clip: true`；`2x4 = 300 x 140`，root `padding: 12`、`borderRadius: 22`、`clip: true`。
+- 新卡片默认使用 `2x2 = 146vp x 146vp`、`2x4 = 314vp x 146vp` 作为逻辑画布和布局预算；`createSurface.width/height` 与 root `styles.width/height` 必须写对应数值尺寸。
+- root 仍承载 `padding: 12`、`borderRadius`、`clip` 和背景：`2x2` 使用 `borderRadius: 18`、`clip: true`；`2x4` 使用 `borderRadius: 22`、`clip: true`。内部 Row/Column/Text/Image/Button/Progress 等组件继续使用数值宽高。
 - 新卡片默认省略 `createSurface.styles`；表面背景、内容布局、安全区和 root 形状都写在 `root.styles` 或 root 下的真实背景组件。只有宿主明确要求外层形状/裁切时，`createSurface.styles` 才可出现且仅限 `borderRadius`、`clip`。
-- 绑定方式固定为：静态值或 `updateDataModel` 预计算展示字段 -> `{"path":"/..."}` -> `formatString`。本版本不输出 `{{ ... }}` 表达式；修复已有 DSL 时也必须改写为路径绑定、`formatString` 或预计算字段，无法等价改写时说明能力边界。
+- 绑定方式固定为：静态值或完整 `{{ ... }}` 表达式。动态展示值、样式动态值和事件参数都用表达式读取 DataModel；不使用 `{"path":"/..."}` 或 `formatString` 作为值绑定。`updateDataModel.path`、CardSpec `writeResultTo`、模板 `children.path` 是协议结构 JSON Pointer，不属于值绑定；列表模板项内用表达式读取当前项字段。
 - 非模板生成时使用稳定语义 ID：`surface_card`、`root`、`header_row`、`title_text`、`primary_value`、`primary_caption`、`support_row`、`action_button` 等；模板生成时保留模板 ID 体系，但删除不用的可选槽位并同步清理引用。
 - 不使用网络图、内联/base64 SVG、emoji、占位媒体、未声明资源路径、未声明 SVG、未声明事件能力、`Button.action`、非 `onClick` 事件或 Form 子集外组件；允许 `reference/design/asset-library.md` 声明的本地 SVG。
 - 可点击 UI 必须有真实 `onClick` EventHandler；如果动作能力不明，删除点击行为，把动作区降级为非误导支撑信息。

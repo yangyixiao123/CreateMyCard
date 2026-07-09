@@ -1,6 +1,6 @@
 # Datamodel-First 卡片校验器
 
-本目录提供 `harmony-card-generation-datamodel-first` 的本地校验程序，用于校验模型生成的 `genui` DSL JSONL 和 `cardspec` JSON。
+本目录提供 `harmony-card-generation-offline` 的本地校验程序，用于校验模型生成的 `genui` DSL JSONL 和 `cardspec` JSON。
 
 校验器目标：
 
@@ -13,31 +13,31 @@
 在仓库根目录运行：
 
 ```bash
-python skills/harmony-card-generation-datamodel-first/scripts/validate_card.py --dsl out.genui.jsonl --cardspec out.cardspec.json
+python skills/harmony-card-generation-offline/scripts/validate_card.py --dsl out.genui.jsonl --cardspec out.cardspec.json
 ```
 
 只校验 DSL：
 
 ```bash
-python skills/harmony-card-generation-datamodel-first/scripts/validate_card.py --dsl out.genui.jsonl
+python skills/harmony-card-generation-offline/scripts/validate_card.py --dsl out.genui.jsonl
 ```
 
 只校验 CardSpec：
 
 ```bash
-python skills/harmony-card-generation-datamodel-first/scripts/validate_card.py --cardspec out.cardspec.json
+python skills/harmony-card-generation-offline/scripts/validate_card.py --cardspec out.cardspec.json
 ```
 
 校验包含两个 fenced code block 的完整草稿：
 
 ```bash
-python skills/harmony-card-generation-datamodel-first/scripts/validate_card.py draft.md
+python skills/harmony-card-generation-offline/scripts/validate_card.py draft.md
 ```
 
 输出给模型二次修复的短格式：
 
 ```bash
-python skills/harmony-card-generation-datamodel-first/scripts/validate_card.py --dsl out.genui.jsonl --cardspec out.cardspec.json --format model
+python skills/harmony-card-generation-offline/scripts/validate_card.py --dsl out.genui.jsonl --cardspec out.cardspec.json --format model
 ```
 
 ## CLI 参数
@@ -476,15 +476,15 @@ class ExampleValidator(BaseValidator):
 编译检查：
 
 ```bash
-python -m py_compile skills/harmony-card-generation-datamodel-first/scripts/validate_card.py skills/harmony-card-generation-datamodel-first/scripts/validators/*.py
+python -m py_compile skills/harmony-card-generation-offline/scripts/validate_card.py skills/harmony-card-generation-offline/scripts/validators/*.py
 ```
 
 校验单个模板：
 
 ```bash
-python skills/harmony-card-generation-datamodel-first/scripts/validate_card.py \
-  --dsl skills/harmony-card-generation-datamodel-first/assets/templates/2x2-countdown-panel/template.genui.jsonl \
-  --cardspec skills/harmony-card-generation-datamodel-first/assets/templates/2x2-countdown-panel/cardspec.json \
+python skills/harmony-card-generation-offline/scripts/validate_card.py \
+  --dsl skills/harmony-card-generation-offline/assets/templates/2x2-countdown-panel/template.genui.jsonl \
+  --cardspec skills/harmony-card-generation-offline/assets/templates/2x2-countdown-panel/cardspec.json \
   --format json
 ```
 
@@ -492,12 +492,12 @@ PowerShell 批量校验模板：
 
 ```powershell
 $failed = 0
-$templates = Get-ChildItem .\skills\harmony-card-generation-datamodel-first\assets\templates -Directory
+$templates = Get-ChildItem .\skills\harmony-card-generation-offline\assets\templates -Directory
 foreach ($t in $templates) {
   $dsl = Join-Path $t.FullName 'template.genui.jsonl'
   $card = Join-Path $t.FullName 'cardspec.json'
   if ((Test-Path $dsl) -and (Test-Path $card)) {
-    python .\skills\harmony-card-generation-datamodel-first\scripts\validate_card.py --dsl $dsl --cardspec $card --format json | Out-Null
+    python .\skills\harmony-card-generation-offline\scripts\validate_card.py --dsl $dsl --cardspec $card --format json | Out-Null
     if ($LASTEXITCODE -ne 0) {
       Write-Host "FAILED $($t.Name)"
       $failed++
@@ -514,3 +514,4 @@ if ($failed -eq 0) { Write-Host 'all templates passed' } else { exit 1 }
 - 布局检查是静态估算，不等同真实渲染截图验证。
 - `qualityScore` 是工程质量门，不是绝对审美评分。
 - 如果新增复杂能力，优先新增 schema/config；只有涉及跨节点推导、布局预算或新语义时，再新增 Validator。
+

@@ -1,5 +1,5 @@
 ---
-name: harmony-card-generation-cloud-orchestration
+name: harmony-card-generation-online
 description: "编排云侧微服务生成 HarmonyOS A2UI Form 服务卡片。用于用户用自然语言请求创建、生成、预览、添加桌面 widget/服务卡片，或端侧以 /harmony-card-generation 等标记触发卡片生成时，识别场景、获取能力概述、筛选候选数据/事件/素材能力、构造候选 dataBindings/event candidates/asset ids/size，调用 getWidgetCapabilityOverview、getDataCapabilitySchemas、generateWidgetCard，并根据 success/degraded/unsupported/failed 返回 genWidgetResult 链接或可理解说明；当 generateWidgetCard 不可用、调用失败或结果不符合预期时，主 Agent 可进入兜底链路生成最终可交付结果，但不得伪造动态能力或 artifact URL。"
 metadata:
   tools:
