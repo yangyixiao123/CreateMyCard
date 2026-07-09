@@ -41,6 +41,7 @@
 - 点击、拨号、跳转和动作参数：[`reference/capability/event-capability/click-event.md`](reference/capability/event-capability/click-event.md)。
 - 布局预算、按钮对齐、底部贴底、重叠、留白：[`reference/design/layout-system.md`](reference/design/layout-system.md)。
 - 合规模板选型、槽位映射和回退规则：[`reference/template-routing.md`](reference/template-routing.md)。
+- 历史布局模板参考：[`reference/layout-templates/`](reference/layout-templates/)。这些模板只用于维护和后续模板规范化参考，不进入正式生成路由；正式模板仍以 `assets/templates/index.json` 为准。
 - 颜色合法性、场景色、渐变 stop、token 来源：[`reference/design/color-token-system.md`](reference/design/color-token-system.md)；需要具体 hex 时再读 [`reference/design/color-token-values.md`](reference/design/color-token-values.md)。
 - 图片、图标、背景图、素材路径，或入选内容存在可由素材承担的识别、状态、动作、主媒体、视觉锚点职责：[`reference/design/asset-library.md`](reference/design/asset-library.md)。不要仅因用户未提供素材就跳过素材库。
 - P0/L0/L1 已成立，但主显示组不突出、支撑组散落、表面层级缺失，或用户明确要求调整构图/表面：[`reference/design/design-heuristics.md`](reference/design/design-heuristics.md)。
