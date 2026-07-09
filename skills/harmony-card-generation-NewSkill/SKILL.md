@@ -21,7 +21,7 @@ metadata:
 - 调用微服务工具获取当前环境下可供候选筛选的能力概述。
 - 根据用户 query 选择候选数据能力、事件能力和素材。
 - 按需加载选中数据能力 schema。
-- 构造 `candidateDataBindings`、`candidateEventCandidates`、`candidateAssetIds` 和 `size`。
+- 构造 `title`、`description`、`candidateDataBindings`、`candidateEventCandidates`、`candidateAssetIds` 和 `size`。
 - 调用 `generateWidgetCard` 生成卡片 artifact。
 - 根据微服务返回状态组织用户回复。
 - 当 `generateWidgetCard` 不可用、调用失败或结果不符合预期时，进入主 Agent 兜底链路生成最终可交付结果。
@@ -73,6 +73,8 @@ metadata:
 
 6. **构造候选计划**：基于 schema 构造候选计划：
    - `size`：`"2x2"` 或 `"2x4"`。
+   - `title`：静态短标题，尽量不超过 8 个字，用于微服务写入最终 CardSpec 后展示给用户。
+   - `description`：静态短概述，尽量不超过 12 个字，用于微服务写入最终 CardSpec 后展示给用户。
    - `candidateDataBindings`：候选数据能力调用，不是最终 CardSpec。
    - `candidateEventCandidates`：事件候选单数组；每项包含来自 overview 的 `capabilityId` 和完整 `action`。如果无法安全填齐 `action.call/args`，不要传该事件候选。
    - `candidateAssetIds`：来自 overview 的素材 ID。
@@ -103,7 +105,8 @@ metadata:
 ### Function: generateWidgetCard
 - **toolName**: generateWidgetCard
 - **description**: 提交用户需求、候选数据绑定、候选事件和素材，生成可下载的 HarmonyOS A2UI Form 卡片 artifact
-- **参数**: {"type":"object","properties":{"candidateEventCandidates":{"type":"Array","description":"候选点击事件列表；事件 action 只能来自能力概述返回的事件能力说明","required":[],"properties":{"ArrayItem":{"type":"Object","description":"事件 action"}}},"candidateAssetIds":{"type":"Array<String>","description":"候选素材 ID 列表","required":[],"properties":{"ArrayItem":{"type":"String","description":"候选素材 ID"}}},"candidateDataBindings":{"type":"Array","description":"候选数据能力调用列表；微服务会按注册表和 IDS 状态裁决最终可用项","required":[],"properties":{"ArrayItem":{"type":"Object","description":"候选数据能力"}}},"userQuery":{"type":"String","description":"用户原始卡片需求"},"size":{"type":"String","description":"主 Agent 建议尺寸"}},"required":["userQuery"]}
+- **参数**: {"type":"object","properties":{"candidateEventCandidates":{"type":"Array","description":"候选点击事件列表；事件 action 只能来自能力概述返回的事件能力说明","required":[],"properties":{"ArrayItem":{"type":"Object","description":"事件 action"}}},"candidateAssetIds":{"type":"Array<String>","description":"候选素材 ID 列表","required":[],"properties":{"ArrayItem":{"type":"String","description":"候选素材 ID"}}},"candidateDataBindings":{"type":"Array","description":"候选数据能力调用列表；微服务会按注册表和 IDS 状态裁决最终可用项","required":[],"properties":{"ArrayItem":{"type":"Object","description":"候选数据能力"}}},"userQuery":{"type":"String","description":"用户原始卡片需求"},"size":{"type":"String","description":"主 Agent 建议尺寸"},"title":{"type":"String","description":"建议写入最终 CardSpec 的静态短标题，尽量不超过 8 个字"},"description":{"type":"String","description":"建议写入最终 CardSpec 的静态短概述，尽量不超过 12 个字"}},"required":["userQuery"]}
+- **约束**: `title` 和 `description` 是静态展示建议，最终 CardSpec 仍由微服务生成；`candidateDataBindings` 是候选，不是最终 CardSpec；`candidateEventCandidates` 每项必须同时包含 `capabilityId` 和完整 `action`；不重试工具。
 
 ## 工具调用示例
 
@@ -112,7 +115,7 @@ invoke(functionName:"getWidgetCapabilityOverview", arguments:{bundleName:"com.om
 
 invoke(functionName:"getDataCapabilitySchemas", arguments:{bundleName:"com.omega_w_0823.hmservice", dataCapabilityIds:["ViewWeather", "calendar.events.search"]})
 
-invoke(functionName:"generateWidgetCard", arguments:{bundleName:"com.omega_w_0823.hmservice", userQuery:"生成一个通勤卡片", size:"2x4", candidateDataBindings:[{capabilityId:"ViewWeather", arguments:{districtName:"青浦区", forecastDays:1}, writeResultTo:"/data/weather"}], candidateEventCandidates:[{capabilityId:"event.open.weather", action:{call:"clickToDeeplink", args:{bundleName:"", abilityName:"", uri:"hww://www.huawei.com/totemweather?enterType=share&cityCode="}}}], candidateAssetIds:["asset.weather.rain"]})
+invoke(functionName:"generateWidgetCard", arguments:{bundleName:"com.omega_w_0823.hmservice", userQuery:"生成一个通勤卡片", locale:"zh-CN", size:"2x4", title:"通勤日常", description:"天气日程速览", candidateDataBindings:[{capabilityId:"ViewWeather", arguments:{districtName:"青浦区", forecastDays:1}, writeResultTo:"/data/weather"}], candidateEventCandidates:[{capabilityId:"event.open.weather", action:{call:"clickToDeeplink", args:{bundleName:"", abilityName:"", uri:"hww://www.huawei.com/totemweather?enterType=share&cityCode="}}}], candidateAssetIds:["asset.weather.rain"]})
 ```
 
 

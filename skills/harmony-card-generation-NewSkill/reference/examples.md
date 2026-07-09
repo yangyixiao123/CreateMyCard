@@ -44,6 +44,8 @@ invoke(functionName:"generateWidgetCard", arguments:{
   userQuery:"生成一个通勤卡片，早上看天气、今天第一个会议和去公司的入口。",
   locale:"zh-CN",
   size:"2x4",
+  title:"通勤日常",
+  description:"天气日程速览",
   candidateDataBindings:[
     {
       capabilityId:"ViewWeather",
@@ -88,6 +90,8 @@ invoke(functionName:"generateWidgetCard", arguments:{
   userQuery:"给我做一张抖音使用时长和耗电卡，显示前台时长、前台耗电和更新时间。",
   locale:"zh-CN",
   size:"2x2",
+  title:"应用耗电",
+  description:"时长耗电速览",
   candidateDataBindings:[
     {
       capabilityId:"GetAppUsageDurationAndPower",
@@ -113,6 +117,8 @@ invoke(functionName:"generateWidgetCard", arguments:{
   userQuery:"帮我做一个打开天气应用的入口卡片",
   locale:"zh-CN",
   size:"2x2",
+  title:"天气入口",
+  description:"快速查看天气",
   candidateDataBindings:[],
   candidateEventCandidates:[
     {
@@ -141,6 +147,8 @@ invoke(functionName:"generateWidgetCard", arguments:{
   userQuery:"帮我做一个美团外卖配送状态卡片",
   locale:"zh-CN",
   size:"2x2",
+  title:"外卖状态",
+  description:"配送进度速览",
   candidateDataBindings:[],
   candidateEventCandidates:[],
   candidateAssetIds:[]

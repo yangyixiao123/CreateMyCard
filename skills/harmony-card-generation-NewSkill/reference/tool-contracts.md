@@ -106,6 +106,8 @@ invoke(functionName:"generateWidgetCard", arguments:{bundleName:"com.omega_w_082
 | --- | --- | --- | --- |
 | `userQuery` | `String` | 是 | 用户原始卡片需求。 |
 | `size` | `String` | 否 | 主 Agent 建议尺寸；推荐 `"2x2"` 或 `"2x4"`。 |
+| `title` | `String` | 否 | 建议写入最终 CardSpec 的静态短标题，尽量不超过 8 个字。 |
+| `description` | `String` | 否 | 建议写入最终 CardSpec 的静态短概述，尽量不超过 12 个字。 |
 | `candidateDataBindings` | `Array<CandidateDataBinding>` | 否 | 候选数据能力调用列表。 |
 | `candidateEventCandidates` | `Array<CandidateEventCandidate>` | 否 | 候选点击事件列表。 |
 | `candidateAssetIds` | `Array<String>` | 否 | 候选素材 ID 列表。 |
@@ -125,6 +127,42 @@ invoke(functionName:"generateWidgetCard", arguments:{bundleName:"com.omega_w_082
 | --- | --- | --- | --- |
 | `capabilityId` | `string` | 是 | 事件能力 ID，必须来自 overview。 |
 | `action` | `EventAction` | 是 | 包含 `call` 和 `args`；只能来自 overview 返回的事件能力说明。 |
+
+调用示例：
+
+```text
+invoke(functionName:"generateWidgetCard", arguments:{
+  bundleName:"com.omega_w_0823.hmservice",
+  userQuery:"帮我做通勤卡片，包含天气和今日日程",
+  size:"2x4",
+  title:"通勤日常",
+  description:"天气日程速览",
+  candidateDataBindings:[
+    {
+      capabilityId:"ViewWeather",
+      arguments:{
+        districtName:"青浦区",
+        forecastDays:1
+      },
+      writeResultTo:"/data/weather"
+    }
+  ],
+  candidateEventCandidates:[
+    {
+      capabilityId:"event.open.weather",
+      action:{
+        call:"clickToDeeplink",
+        args:{
+          bundleName:"",
+          abilityName:"",
+          uri:"hww://www.huawei.com/totemweather?enterType=share&cityCode="
+        }
+      }
+    }
+  ],
+  candidateAssetIds:["asset.weather.rain"]
+})
+```
 
 输出字段：
 
@@ -151,7 +189,9 @@ invoke(functionName:"generateWidgetCard", arguments:{bundleName:"com.omega_w_082
 调用规则：
 
 - `candidateDataBindings` 是候选，不是最终 CardSpec。
-- `candidateEventCandidates` 每项必须同时包含 `capabilityId` 和完整 `action`。
+- `title` 和 `description` 是静态展示建议，不是最终 CardSpec；最终字段由微服务结合降级结果规范化后写入 CardSpec。
+- `title` 尽量不超过 8 个字，`description` 尽量不超过 12 个字；两者不得包含动态绑定、变量、能力 ID、包名或内部错误码。
+- `candidateEventCandidates` 是候选事件单数组；每项必须同时包含 `capabilityId` 和完整 `action`。
 - 如果事件 `action.call/args` 无法从 overview 返回内容或用户明确输入中安全填齐，不传该事件候选。
 - `candidateAssetIds` 只传 overview 返回的素材 ID，不传自造资源路径。
 - 不重试工具，除非工具返回明确可重试错误并要求重试。

@@ -33,6 +33,14 @@
         "type": "String",
         "description": "用户原始卡片需求"
       },
+      "title": {
+        "type": "String",
+        "description": "建议写入最终 CardSpec 的静态短标题，尽量不超过 8 个字"
+      },
+      "description": {
+        "type": "String",
+        "description": "建议写入最终 CardSpec 的静态短概述，尽量不超过 12 个字"
+      },
       "protocolProfileId": {
         "type": "String",
         "description": "可选 A2UI 协议 profile ID；不传时使用默认 profile"
