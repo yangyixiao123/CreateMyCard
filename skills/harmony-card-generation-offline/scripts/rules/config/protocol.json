@@ -5,7 +5,7 @@
   ],
   "messageOrder": ["createSurface", "updateComponents", "updateDataModel"],
   "messageRequiredFields": {
-    "createSurface": ["surfaceId", "catalogId", "width", "height"],
+    "createSurface": ["surfaceId", "catalogId"],
     "updateComponents": ["surfaceId", "root", "components"],
     "updateDataModel": ["surfaceId", "path", "value"]
   },

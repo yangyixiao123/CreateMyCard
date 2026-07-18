@@ -264,5 +264,5 @@
 ]
 ```
 ```CardSpec
-{"title":"天气关怀卡片","description":"天气预警与感冒指数","suggestSize":"2x2","dataBindings":[{"capabilityId":"ViewWeather","arguments":{"districtName":"深圳市","forecastDays":1},"writeResultTo":"/data/weather"}]}
+{"title":"关怀卡片","description":"天气与家人联系","suggestSize":"2x2","dataBindings":[{"capabilityId":"ViewWeather","arguments":{"districtName":"Shenzhen","forecastDays":1},"writeResultTo":"/data/weather"}]}
 ```
