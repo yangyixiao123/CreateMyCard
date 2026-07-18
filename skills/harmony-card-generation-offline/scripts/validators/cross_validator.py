@@ -1,19 +1,16 @@
 from __future__ import annotations
 
-from .base import BaseValidator, is_json_pointer, read_pointer, schema_path_exists
+from .base import BaseValidator, is_json_pointer, read_pointer, resolve_dimension, schema_path_exists
 
 
 class CrossValidator(BaseValidator):
     """Cross-file consistency between DSL and CardSpec.
 
-    Only responsibility left: check that ``CardSpec.dataBindings`` roots are
-    initialised in the DSL DataModel and that the referenced data capability
-    has an ``outputSchema``. Surface / root dimension checks used to live here
-    but were removed: (1) DSL alone has no ``suggestSize`` signal so the size
-    budget cannot be derived, (2) the "only root carries matchParent" rule is
-    now enforced structurally by ``ProtocolValidator`` (createSurface) and
-    ``ComponentValidator`` (root component) at the hard stage, independent of
-    CardSpec.
+    Check the fixed root radius and verify that ``CardSpec.dataBindings`` roots
+    are initialised in the DSL DataModel and that the referenced data
+    capability has an ``outputSchema``. Surface / root dimension checks do not
+    live here because DSL alone has no ``suggestSize`` signal and the size
+    budget cannot be derived.
     """
 
     stage = "semantic"
@@ -22,7 +19,29 @@ class CrossValidator(BaseValidator):
     def validate(self, context, rules, reporter) -> None:
         if not context.dsl_messages or not context.cardspec:
             return
+        self._check_root_radius(context, rules, reporter)
         self._check_data_roots(context, rules, reporter)
+
+    def _check_root_radius(self, context, rules, reporter) -> None:
+        size = context.cardspec.get("suggestSize")
+        if size not in rules.protocol.get("sizes", {}) or not isinstance(context.root_component, dict):
+            return
+        expected_radius = 18
+        styles = context.root_component.get("styles")
+        actual_radius = styles.get("borderRadius") if isinstance(styles, dict) else None
+        if resolve_dimension(actual_radius) != resolve_dimension(expected_radius):
+            reporter.add(
+                "error",
+                "CROSS_ROOT_RADIUS_MISMATCH",
+                "semantic",
+                "genui",
+                line=2,
+                json_pointer="/updateComponents/root/styles/borderRadius",
+                actual=actual_radius,
+                expected=expected_radius,
+                message="卡片 root 的 borderRadius 必须固定为 18vp，与 CardSpec 尺寸无关。",
+                fix_hint="将 updateComponents.root 指向组件的 styles.borderRadius 改为 18。",
+            )
 
     def _check_data_roots(self, context, rules, reporter) -> None:
         bindings = context.cardspec.get("dataBindings")
