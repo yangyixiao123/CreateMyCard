@@ -23,7 +23,9 @@ metadata:
 - 调用微服务工具获取当前环境下可供候选筛选的能力概述。
 - 根据用户 query 选择候选数据能力、事件能力和素材。
 - 按需加载选中数据能力 schema。
+- 评估候选能力对用户核心需求的覆盖情况；只能部分满足时按影响决定追问或继续。
 - 构造 `candidateDataBindings`、`candidateEventCandidates`、`candidateAssetIds`、`size`、`title` 和 `description`。
+- 控制主要展示数据项不超过 4 项，并记录主动舍弃的用户需求用于结果说明。
 - 调用 `generateWidgetCard` 生成卡片 artifact。
 - 编辑成功后使用本轮返回的新 `artifactUrl` 作为后续编辑的默认来源。
 - 根据微服务返回状态组织用户回复。
@@ -76,7 +78,7 @@ metadata:
 
 2. **初步回应**：不要说"可以生成某动态卡片"。需要过程回复时只说："我先检查当前设备支持情况，然后为你生成可用的卡片。"
 
-3. **用户确认与工具入参校验**：每次调用工具前先检查是否存在用户可回答、且会影响核心卡片需求、候选能力、目标对象、地点、日期/时间范围、动作目标或必填业务参数的未决信息。有则不要调用任何工具，先用简短自然语言追问，等待用户明确回答后重新检查当前步骤。能从用户原话、可信会话上下文或 schema 明确默认值安全确定的内容不重复确认；未指定编辑目标不属于歧义，按最近一次卡片结果处理。不要向用户询问设备能力是否可用、能力 ID、内部字段名或其它应由微服务裁决的内容。确认门禁通过后，再读取当前运行时 `tools` 中对应工具的 schema，按“工具定义”的调用前硬校验逐项检查 `functionName`、`bundleName`、必填字段、字段名、类型和嵌套结构。任何字段都不能只因本 Skill、参考资料、示例或内部类中出现就传入。
+3. **用户确认与工具入参校验**：每次调用工具前先检查是否存在用户可回答、且会影响核心卡片需求、候选能力、目标对象、地点、日期/时间范围、动作目标或必填业务参数的未决信息。有则不要调用任何工具，用自然语言集中追问最少必要信息，等待用户回答后从当前步骤继续。能从用户原话、可信会话上下文或 schema 明确默认值安全确定的内容不重复确认；未指定编辑目标不属于歧义，按最近一次卡片结果处理。不要向用户询问设备能力是否可用、能力 ID、内部字段名或其它应由微服务裁决的内容。确认门禁通过后，再读取当前运行时 `tools` 中对应工具的 schema，按“工具定义”的调用前硬校验逐项检查 `functionName`、`bundleName`、必填字段、字段名、类型和嵌套结构。任何字段都不能只因本 Skill、参考资料、示例或内部类中出现就传入。
 
 4. **编辑请求分流**：进入 edit 模式后，先确认当前运行时 `generateWidgetCard` schema 已声明 `sourceArtifactUrl`；未声明时终止本轮编辑并按工具不可用回复，不得删除该字段后误走 create 模式。然后按编辑类型处理：
    - 纯视觉或布局修改：只准备 `userQuery` 和 `sourceArtifactUrl`，不调用能力概述或数据 schema。
@@ -91,14 +93,16 @@ metadata:
    - 数据能力最多优先选 2 个核心候选。
    - 事件能力最多优先选 2 个主动作候选。
    - 素材候选只选和场景强相关的少量 ID。
+   - 若当前候选只能满足部分核心需求，但剩余内容仍可形成有价值的卡片，先说明无法覆盖的部分并询问是否继续；用户确认后再进入后续步骤。
+   - 若只缺少次要内容，不额外打断用户，记录该调整并继续；设备最终可用性仍由微服务裁决。
 
-7. **加载数据能力 Schema**：如果 create 模式选中了数据能力，或 edit 模式正在修改数据能力，先确认候选选择不依赖尚未明确的用户选择；存在会改变核心候选的歧义时先追问并等待回答。确认后只为排除 `unavailableCapabilities` 后仍可选的数据能力调用 `getDataCapabilitySchemas` 加载完整 schema。工具不可用、调用失败或 payload 无法解析时，按 `references/response-policy.md` 回复并终止本轮生成。
+7. **加载数据能力 Schema**：如果 create 模式选中了数据能力，或 edit 模式正在修改数据能力，先确认候选选择不依赖尚未明确的用户选择；存在会改变核心候选的歧义时先追问并等待回答。确认后只为排除 `unavailableCapabilities` 后仍可选的数据能力调用 `getDataCapabilitySchemas` 加载完整 schema。schema 必填业务参数无法从用户原话、可信上下文或安全默认值取得时，使用用户可理解的说法集中追问；不要暴露字段名或为了绕过追问删除核心候选。工具不可用、调用失败或 payload 无法解析时，按 `references/response-policy.md` 回复并终止本轮生成。
 
 8. **构造请求计划**：create 模式基于 schema 构造完整候选计划；edit 模式只传本轮明确替换的字段或候选类别：
    - `size`：`"2x2"` 或 `"2x4"`。
    - `candidateDataBindings`：候选数据能力调用，不是最终 CardSpec。
    - 按当前工具 schema 组装每个 `candidateDataBindings` 元素：`capabilityId`、`arguments`、`writeResultTo`，以及可选的 `candidateOutputFields`；不要传松散对象或额外字段。
-   - `candidateOutputFields` 只能是 JSON Pointer 字符串数组，每一项必须能从对应能力本轮返回的 `outputSchema` 推导；拿不准时省略。不要传 `updateModel`。
+   - `candidateOutputFields` 只能是 JSON Pointer 字符串数组，每一项必须能从对应能力本轮返回的 `outputSchema` 推导；主要展示数据项合计不超过 4 项，优先保留用户明确点名和最能回答核心需求的内容。拿不准时省略。不要传 `updateModel`。
    - `candidateEventCandidates`：事件候选单数组；每项包含来自 overview 的 `capabilityId` 和完整 `action`。如果无法安全填齐 `action.call/args`，不要传该事件候选。
    - 虽然对外工具 schema 中事件项只是 `Object`，每一项仍必须按内部 `CandidateEventCandidate` 类结构组装：`capabilityId` 和 `action:{call,args}`。
    - `candidateAssetIds`：来自 overview 的素材 ID。
@@ -111,6 +115,7 @@ metadata:
 10. **回复用户并推进编辑链**：按 `references/response-policy.md` 回复：
    - 先从 `generateWidgetCard` 返回的 `items[].data` 解析业务 payload；如果返回原始插件包络，则先进入 `reply.items[].data`。
    - `success` / `degraded` 且存在有效 `artifactUrl`：输出业务 payload 的 `message`，并按“输出”章节格式输出 `genWidgetResult` JSON 标记。
+   - 主 Agent 已主动舍弃用户明确要求的次要数据项时，在结果中用一句用户可理解的说明补充，且不与微服务 `message` 重复。
    - `success` / `degraded` 但缺少有效 `artifactUrl`：按 `failed` 处理，不输出 `genWidgetResult`。
    - `unsupported`：不输出 `genWidgetResult`，输出用户可理解的能力边界和可尝试的替代方向。
    - `failed`：不输出 `genWidgetResult`，只输出生成服务暂时不可用的说明。
