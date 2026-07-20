@@ -3,7 +3,7 @@
   "pluginType": "Cloud",
   "toolType": "XiaoYiPlugin",
   "toolName": "getWidgetCapabilityOverview",
-  "description": "获取当前设备版本可用的能力概述。数据能力只返回 id 和描述；事件能力、素材能力全量返回",
+  "description": "获取当前用户实际可用的数据能力、不可用数据能力 ID，以及事件和素材概述",
   "arguments": {},
   "outputSchema": {
     "properties": {

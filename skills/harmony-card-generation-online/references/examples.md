@@ -42,13 +42,12 @@ invoke(functionName:"getWidgetCapabilityOverview", arguments:{
 },"skillName":"harmony-card-generation-online")
 ```
 
-解析业务 `data` 后先应用不可用能力过滤。例如：
+解析业务 `data` 后直接使用已裁决结果。例如：
 
 ```json
 {
   "dataCapabilities": [
-    {"id": "ViewWeather", "description": "查询天气"},
-    {"id": "GetAppUsageDurationAndPower", "description": "查询应用使用时长和耗电"}
+    {"id": "ViewWeather", "description": "查询天气"}
   ],
   "unavailableCapabilities": ["GetAppUsageDurationAndPower"],
   "eventCapabilities": [],
@@ -58,7 +57,7 @@ invoke(functionName:"getWidgetCapabilityOverview", arguments:{
 
 此时只能继续选择 `ViewWeather`；不得为 `GetAppUsageDurationAndPower` 请求 schema 或构造数据绑定。
 
-如果 `unavailableCapabilities` 缺失或为 `[]`，表示没有预先标记的不可用数据能力，继续从全部 `dataCapabilities` 中筛选。
+如果 `unavailableCapabilities` 缺失或为 `[]`，表示没有已识别的本地不可用数据能力。
 
 2. `getDataCapabilitySchemas`
 
@@ -124,7 +123,7 @@ invoke(functionName:"generateWidgetCard", arguments:{
 
 ## 工具调用样例：应用使用时长
 
-仅当 `getWidgetCapabilityOverview` 返回 `GetAppUsageDurationAndPower`，且该 ID 不在 `unavailableCapabilities` 中时才使用该候选。
+仅当 `getWidgetCapabilityOverview.dataCapabilities` 返回 `GetAppUsageDurationAndPower` 时才使用该候选。
 
 ```text
 invoke(functionName:"generateWidgetCard", arguments:{
@@ -291,7 +290,7 @@ success：
 degraded（`XX` 已替换为“日程”）：
 
 ````text
-本次卡片生成暂无你提及的日程数据，该能力暂未开放，将基于可获取数据为你生成卡片
+本次卡片生成暂无你提及的日程数据，将基于可获取数据为你生成卡片
 
 ```genWidgetResult
 {
@@ -303,7 +302,7 @@ degraded（`XX` 已替换为“日程”）：
 unsupported：
 
 ```text
-抱歉，你提及的外卖配送功能数据本期暂未开放，你可以尝试生成首页精选的天气、日程、运动、设备电量等同类应用卡片
+抱歉，当前暂无法获取你提及的外卖配送功能数据，你可以尝试生成首页精选的天气、日程、运动、设备电量等同类应用卡片
 ```
 
 failed：

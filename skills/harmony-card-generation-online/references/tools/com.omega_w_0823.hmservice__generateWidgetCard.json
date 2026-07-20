@@ -8,7 +8,7 @@
     "properties": {
       "candidateDataBindings": {
         "type": "Array",
-        "description": "候选数据能力调用列表；微服务会按注册表和 IDS 状态裁决最终可用项",
+        "description": "已通过能力概述裁决的候选数据能力调用列表",
         "required": [],
         "properties": {
           "ArrayItem": {

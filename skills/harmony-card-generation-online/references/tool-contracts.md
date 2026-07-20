@@ -61,7 +61,7 @@ invoke(functionName:"generateWidgetCard", arguments:{bundleName:"com.omega_w_082
 
 ## getWidgetCapabilityOverview
 
-用途：获取当前设备版本可用的能力概述。数据能力只返回 `id` 和描述；事件能力、素材能力全量返回。
+用途：返回当前用户实际可用的数据能力、云侧支持但用户本地不可用的数据能力 ID，以及事件和素材概述。
 
 参数：无。除 `bundleName` 外不传其它字段。
 
@@ -75,8 +75,8 @@ invoke(functionName:"getWidgetCapabilityOverview", arguments:{bundleName:"com.om
 
 | 字段 | 类型 | 必填 | 说明 |
 | --- | --- | --- | --- |
-| `dataCapabilities` | `DataCapabilityOverview[]` | 是 | 数据能力概述列表，只包含 `id` 和 `description`。 |
-| `unavailableCapabilities` | `string[]` | 否 | 当前不可用的数据能力 ID；缺失或为 `[]` 时不额外排除，非空时在候选筛选前从 `dataCapabilities` 中排除。 |
+| `dataCapabilities` | `DataCapabilityOverview[]` | 是 | 当前用户实际可用的数据能力，只包含 `id` 和 `description`。 |
+| `unavailableCapabilities` | `string[]` | 否 | 云侧支持但用户本地不可用的数据能力 ID；本期不返回原因。 |
 | `eventCapabilities` | `EventCapability[]` | 是 | 事件能力完整列表。 |
 | `assetCandidates` | `AssetCapability[]` | 是 | 素材能力完整列表。 |
 
@@ -84,10 +84,9 @@ invoke(functionName:"getWidgetCapabilityOverview", arguments:{bundleName:"com.om
 
 - 调用前确认用户的核心卡片主题和明确要求不存在待追问项。
 - 先调用该工具，再做候选选择。
-- 不因 overview 中出现某能力就向用户承诺设备一定可用。
-- `unavailableCapabilities` 存在且非空时，先从 `dataCapabilities` 中排除其中 ID；同一 ID 同时出现时以不可用为准。字段缺失或为空数组时不额外排除。
+- `dataCapabilities` 已完成用户实际可用性裁决，但不代表最终一定生成成功。
 - 不为不可用能力调用 `getDataCapabilitySchemas`，也不把它写入 `candidateDataBindings`。
-- 只从过滤后的 `dataCapabilities`、`eventCapabilities`、`assetCandidates` 中选择候选；不要编造能力 ID、事件目标或素材 ID。
+- 数据候选只从 `dataCapabilities` 中选择；`unavailableCapabilities` 本期仅适用于数据能力，事件和素材沿用各自返回列表。
 
 ## getDataCapabilitySchemas
 
@@ -115,7 +114,7 @@ invoke(functionName:"getDataCapabilitySchemas", arguments:{bundleName:"com.omega
 调用规则：
 
 - 调用前确认候选能力选择不依赖未解决的用户歧义；存在会改变核心候选的选择时先追问并等待回答。
-- 只传本轮从 overview 中选出且不在 `unavailableCapabilities` 中的数据能力 ID。
+- 只传本轮从 `dataCapabilities` 中选出的数据能力 ID。
 - 如果某 ID 出现在 `missingCapabilityIds`，候选计划中移除该数据能力。
 - `candidateDataBindings[].arguments` 只能使用对应 `inputSchema.properties` 中声明的字段。
 - `writeResultTo` 优先使用能力 schema 提供的默认写入路径；没有默认值时使用 `/data/{semanticKey}`，且多个候选不得相同或互为父子。
