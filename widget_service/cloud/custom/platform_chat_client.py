@@ -302,7 +302,7 @@ class _Chat:
 
 
 class PlatformChatClient:
-    """仅在 multi_step_generation 内使用的平台 WS/tool_choice 适配器。"""
+    """调试 Agent 使用的平台 WS/tool_choice 适配器。"""
 
     def __init__(
         self,

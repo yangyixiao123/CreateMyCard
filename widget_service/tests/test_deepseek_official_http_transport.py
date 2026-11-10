@@ -7,12 +7,12 @@ from openai import AsyncOpenAI
 from openai.resources.chat.completions import AsyncCompletions
 
 from config.config import Settings
+from custom import platform_chat_client as model_adapter
 from custom.deepseek_official_http_transport import DeepSeekOfficialHttpTransport
 from custom.model_transport import ModelTransportError
 from custom.official_http_client import OfficialHttpCompletion, OfficialHttpToolCall
+from custom.platform_chat_client import PlatformChatClient
 from models.generation import ModelRequestContext
-from services.multi_step_generation.core import model_adapter
-from services.multi_step_generation.core.model_adapter import PlatformChatClient
 
 
 def _settings(**overrides: object) -> Settings:

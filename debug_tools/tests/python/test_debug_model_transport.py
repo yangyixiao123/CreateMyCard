@@ -1,8 +1,8 @@
 """调试 Agent 的模型传输配置回归。"""
 
 from config.config import Settings
+from custom.platform_chat_client import PlatformChatClient
 from debug_tools.end_to_end_debug.backend.debug_agent.agent import DebugAgentSession
-from services.multi_step_generation.core.model_adapter import PlatformChatClient
 
 
 def _settings(**overrides: object) -> Settings:
