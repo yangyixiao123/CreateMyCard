@@ -69,12 +69,21 @@ class EditPropertyValue:
     value: Any = None
 
 
+class ChildrenOrder(BaseModel):
+    """模型明确声明的原容器排列，仅授权 children 字段。"""
+
+    model_config = ConfigDict(extra="forbid")
+
+    parentId: str
+    children: list[str] = Field(min_length=1)
+
+
 class EditIntent(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     outcome: Literal["ready", "needs_clarification", "unchanged", "unsupported"] = "ready"
     explanation: str = Field(min_length=1)
-    mode: Literal["patch", "layout"] = "patch"
+    mode: Literal["patch", "layout", "reorder"] = "patch"
     targetSize: WidgetSize
     allowPartial: bool = True
     dimensions: list[EditDimension] = Field(default_factory=list)
@@ -84,6 +93,7 @@ class EditIntent(BaseModel):
     backgroundTargets: list[str] = Field(default_factory=list)
     textChanges: list[TextChange] = Field(default_factory=list)
     expectations: list[EditExpectation] = Field(default_factory=list, max_length=64)
+    childrenOrders: list[ChildrenOrder] = Field(default_factory=list, max_length=64)
 
 
 def dump_rows(rows: list[dict]) -> str:
@@ -160,6 +170,7 @@ def validate_intent(
     _, nodes = _tree(original)
     if intent.outcome in {"ready", "unchanged"}:
         _validate_expectations(intent, nodes)
+        validate_children_orders(intent, nodes)
     if intent.outcome != "ready":
         if intent.outcome == "unchanged" and explicit_size is not None:
             if explicit_size != source_size:
@@ -175,6 +186,15 @@ def validate_intent(
             raise ValueError("变更卡片规格必须执行布局编辑，不能只更新尺寸元信息")
     if intent.mode == "layout" and "layout" not in intent.dimensions:
         raise ValueError("布局编辑必须声明 layout 维度")
+    if intent.mode == "reorder" and intent.targetSize != source_size:
+        raise ValueError("纯重排不能变更规格；尺寸适配须使用 layout")
+    if intent.mode == "reorder":
+        changed = False
+        for order in intent.childrenOrders:
+            if nodes.get(order.parentId, {}).get("children") != order.children:
+                changed = True
+        if not changed:
+            raise ValueError("排列已经满足，应返回 unchanged，不应进入执行")
     seen_text: set[str] = set()
     for change in intent.textChanges:
         if change.componentId in seen_text:
@@ -201,6 +221,63 @@ def validate_intent(
                 raise ValueError("不能把业务图标当成背景移除")
             if styles.get("height") not in {"matchParent", "100%"}:
                 raise ValueError("背景图必须为填满承载区的图片")
+
+
+def validate_children_orders(intent: EditIntent, nodes: dict[str, dict]) -> None:
+    """在意图阶段验证排列依赖；不根据自然语言推导或扩大授权。"""
+    if intent.mode == "reorder":
+        if not intent.childrenOrders or intent.dimensions != ["layout"]:
+            raise ValueError("纯重排必须登记 childrenOrders，且仅声明 layout 维度")
+        if intent.textChanges or intent.backgroundTargets or intent.expectations:
+            raise ValueError("混合属性、文案或背景目标须使用 layout")
+    if not intent.childrenOrders:
+        return
+    if intent.mode not in {"layout", "reorder"} or "layout" not in intent.dimensions:
+        raise ValueError("childrenOrders 仅用于布局或纯重排")
+    allowed = scope_ids(intent, nodes)
+    protected = descendants(nodes, intent.protectedTargets)
+    seen: set[str] = set()
+    for order in intent.childrenOrders:
+        parent = nodes.get(order.parentId)
+        if parent is None or order.parentId in seen:
+            raise ValueError(f"重排父节点不存在或重复：{order.parentId}")
+        seen.add(order.parentId)
+        if order.parentId in protected:
+            raise ValueError(f"不能重排受保护容器：{order.parentId}")
+        if parent.get("component") not in _CONTAINERS:
+            raise ValueError("重排仅支持 Row/Column/Stack 静态子引用")
+        children = parent.get("children")
+        if not isinstance(children, list):
+            raise ValueError("重排不支持动态列表模板")
+        if len(set(order.children)) != len(order.children):
+            raise ValueError("目标排列不能包含重复引用")
+        if sorted(children) != sorted(order.children):
+            raise ValueError("目标排列必须完整保留原子引用，不支持跨父迁移")
+        for old_child, new_child in zip(children, order.children, strict=True):
+            if old_child == new_child:
+                continue
+            if old_child not in allowed:
+                raise ValueError(f"移动节点不在目标范围：{old_child}")
+            if descendants(nodes, [old_child]) & protected:
+                raise ValueError(f"移动分支包含受保护区域：{old_child}")
+        if intent.outcome == "unchanged" and children != order.children:
+            raise ValueError("登记排列尚未满足，不能返回 unchanged")
+
+
+def apply_children_orders(original: str, intent: EditIntent) -> str:
+    """纯重排只修改已检查的引用数组，仍执行差异及后续完整产物检查。"""
+    rows, nodes = _tree(original)
+    validate_children_orders(intent, nodes)
+    for order in intent.childrenOrders:
+        parent = nodes.get(order.parentId)
+        if parent is None:
+            raise ValueError("重排父节点不存在")
+        parent["children"] = list(order.children)
+    result = dump_rows(rows)
+    validate_edit_diff(original, result, intent)
+    if _same(_messages(original), _messages(result)):
+        raise ValueError("重排结果没有实际变化")
+    return result
 
 
 def _allowed_styles(intent: EditIntent) -> set[str]:
@@ -493,6 +570,12 @@ def validate_edit_diff(original: str, candidate: str, intent: EditIntent) -> Non
     if not isinstance(root, str):
         raise ValueError("原卡缺少根节点")
     validate_edit_reachability(before_nodes, after_nodes, root)
+    validate_children_orders(intent, before_nodes)
+    ordered_parents: set[str] = set()
+    for order in intent.childrenOrders:
+        ordered_parents.add(order.parentId)
+        if after_nodes.get(order.parentId, {}).get("children") != order.children:
+            raise ValueError(f"EDIT_ORDER_UNMET: 未完成登记排列：{order.parentId}")
     allowed = scope_ids(intent, before_nodes)
     removed_backgrounds: set[str] = set()
     if intent.mode == "layout" and "palette" in intent.dimensions:
@@ -520,7 +603,12 @@ def validate_edit_diff(original: str, candidate: str, intent: EditIntent) -> Non
                 continue
             raise ValueError(f"编辑不得删除原有内容或组件：{identity}")
         changes = _node_changes(before, after)
-        if changes and identity not in allowed:
+        scoped_changes = set(changes)
+        if identity in ordered_parents:
+            scoped_changes.discard("children")
+        if intent.mode == "reorder" and scoped_changes:
+            raise ValueError("纯重排只能修改登记的 children，不得附带其它变化")
+        if scoped_changes and identity not in allowed:
             raise ValueError(
                 f"修改超出已接受目标范围：{identity}；变更字段={sorted(changes)}；"
                 "请恢复该节点原值，保留其它获准修改"
@@ -560,7 +648,7 @@ def _validate_node(identity: str, before: dict, after: dict, changes: set[str],
                 raise ValueError("布局间距必须为有限数值")
             elif value < 0:
                 raise ValueError("布局间距不能为负数")
-    if intent.mode == "layout":
+    if intent.mode in {"layout", "reorder"}:
         allowed_fields.add("children")
         old_children, new_children = before.get("children"), after.get("children")
         if isinstance(old_children, dict) or isinstance(new_children, dict):

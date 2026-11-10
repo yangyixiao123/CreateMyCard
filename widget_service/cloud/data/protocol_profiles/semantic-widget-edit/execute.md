@@ -13,6 +13,9 @@ before 精确复制 previousGenui 原属性的存在性和类型，缺失为 {"e
 不先 remove 再 set 同一属性。路径、动态子字段和值类型遵守公共协议与 editContract。
 
 mode=layout：{"sourceDigest":"照抄输入","genui":[完整的三条标准 A2UI 消息对象]}。
+acceptedIntent.childrenOrders 登记的父容器必须采用指定的完整子引用顺序；即使该父节点
+不在 targets/linkedTargets，也仅允许该项 children 变化，不获得其它属性或子树授权。
+不能通过恢复原顺序或调整无关间距代替登记目标。reorder 模式由程序执行，不进入本阶段。
 保留 createSurface、updateDataModel、root 和 updateComponents 的其它头字段。
 节点删除仅限公共协议允许的背景 Image 及因此变空的获准纯包装，并清理父引用。
 只可新增 Row/Column/Stack 组织容器；原 Row/Column/Stack 可在授权范围内转换方向与层级，

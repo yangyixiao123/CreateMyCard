@@ -35,6 +35,7 @@ from services.single_step_edit import _load_json
 from services.source_artifact_repository import SourceArtifactError, SourceArtifactRepository
 from services.widget_edit_contract import (
     EditIntent,
+    apply_children_orders,
     apply_edit_output,
     has_layout_change,
     validate_edit_source_structure,
@@ -152,8 +153,11 @@ class WidgetEditService:
             if before_model_call is not None:
                 await before_model_call(intent.targetSize)
             with trace_span("edit.execute", stage="edit.execute"):
-                if runtime_only:
-                    # 原组件树没有变更，仍须完整验证新运行配置，不能漏掉参数更新。
+                if runtime_only or intent.mode == "reorder":
+                    if intent.mode == "reorder" and not runtime_only:
+                        candidate.genui = apply_children_orders(original.genui, intent)
+                        _log_edit("reorder_applied", parentCount=len(intent.childrenOrders))
+                    # 程序处理的配置更新和重排也须完整验证，不因省去模型而豁免。
                     result = await to_thread.run_sync(
                         validate_edit_artifact, original, candidate, intent,
                     )
