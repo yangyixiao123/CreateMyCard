@@ -317,6 +317,9 @@ class A2UIModelClient:
         protocol_profile: dict,
     ) -> str:
         """按目标 DSL 格式统一处理各模型后端的原始输出。"""
+        if protocol_profile.get("id") == "semantic-widget-edit":
+            # 编辑专属解析检查完整响应，避免通用 genui 提取提前丢失包装边界。
+            return raw_output
         if protocol_profile.get("format") == "single-step-edit-patch":
             from services.single_step_edit import extract_edit_patch
 

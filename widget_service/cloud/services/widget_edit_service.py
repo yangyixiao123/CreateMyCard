@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import copy
 import inspect
-import re
 from collections.abc import Awaitable, Callable
 from typing import TYPE_CHECKING, Any
 
@@ -41,6 +40,7 @@ from services.widget_edit_contract import (
     validate_edit_source_structure,
     validate_intent,
 )
+from services.widget_edit_output import normalize_edit_output
 from services.widget_edit_prompt import execution_prompt, intent_prompt, repair_feedback
 
 if TYPE_CHECKING:
@@ -303,13 +303,7 @@ class WidgetEditService:
         output = client.generate(messages, _PROFILE, phase=phase, suppress_prompt_log=True)
         if inspect.isawaitable(output):
             output = await output
-        # 只识别整个响应的完整围栏；非法 JSON、重复键及合同仍由后续严格检查拒绝。
-        text = output.strip()
-        match = re.fullmatch(r"```(?:json|jsonl|genui)?[ \t]*\r?\n([\s\S]*?)\r?\n```", text, re.I)
-        if match is not None:
-            output = match.group(1).strip()
-            _log_edit("output_fence_removed", phase=phase, outputChars=len(output))
-        return output
+        return normalize_edit_output(output, phase)
 
     def _candidate(self, original: WidgetArtifact, request: GenerateWidgetCardRequest,
                    preflight: GenerationPreflightResult, policy: GenerationRoutePolicy,

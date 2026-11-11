@@ -296,11 +296,39 @@ def edit_logs(monkeypatch):
 
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize("prefix,suffix", [
+    ("```json\n", ""),
+    ("说明：\n```json\n", ""),
+    ("说明：\n```\n", "\n```"),
+    ("说明：\n```JSONL\r\n", "\r\n```\n修改说明。"),
+    ("说明：\n```genui\n", "\n```"),
+    ("", "\n```\n修改说明。"),
+    ("\ufeff", ""),
+])
+async def test_edit_wrapper_recovery_keeps_both_stage_budgets(
+    edit_run, monkeypatch, prefix, suffix,
+):
+    monkeypatch.setattr(get_settings(), "widget_edit_max_repair_attempts", 0)
+    generate = A2UIModelClient.generate
+
+    async def wrapped(client, messages, profile, **kwargs):
+        output = await generate(client, messages, profile, **kwargs)
+        # 经过真实模型输出适配，不能由通用 genui 提取提前丢失响应边界。
+        return client._process_model_output(prefix + output + suffix, profile)
+
+    monkeypatch.setattr(A2UIModelClient, "generate", wrapped)
+    response = await WidgetGenerationService().generate_widget_card_compact_dsl(_request())
+    assert response.status == GenerationStatus.SUCCESS
+    assert len(edit_run.saved) == 1
+    assert [phase for phase, _ in edit_run.calls] == ["edit_intent", "edit_execute"]
+
+
+@pytest.mark.asyncio
 @pytest.mark.parametrize("raw", [
-    '```json\n{"outcome":"ready"}',
-    '{"outcome":"ready"}\n```',
-    '说明\n```json\n{}\n```',
-    '```json\n{}\n```\n说明',
+    '```json\n{"outcome":"ready"',
+    '{"outcome":"ready"\n```',
+    '说明\n```json\n{"outcome":}\n```',
+    '```json\n{"outcome":}\n```\n说明',
     '```json\n{}\n```\n```json\n{}\n```',
     '```json\n{"outcome":"ready","outcome":"unchanged"}\n```',
     '```json\n{"outcome":}\n```',
